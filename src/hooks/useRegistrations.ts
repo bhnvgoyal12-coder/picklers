@@ -85,6 +85,34 @@ export function useRegisterForGame() {
     setLoading(true);
     setError(null);
     try {
+      // Check for existing registration (pending/failed) to allow retry
+      const { data: existing } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('game_id', params.game_id)
+        .eq('user_id', params.user_id)
+        .in('payment_status', ['pending', 'failed'])
+        .maybeSingle();
+
+      if (existing) {
+        // Reuse existing registration for payment retry
+        return existing as Registration;
+      }
+
+      // Check if already paid
+      const { data: paid } = await supabase
+        .from('registrations')
+        .select('*')
+        .eq('game_id', params.game_id)
+        .eq('user_id', params.user_id)
+        .eq('payment_status', 'paid')
+        .maybeSingle();
+
+      if (paid) {
+        setError('You are already registered for this game');
+        return null;
+      }
+
       const { data, error: err } = await supabase
         .from('registrations')
         .insert({
