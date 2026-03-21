@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Game } from '../../types';
 
-type GameFormData = Omit<Game, 'id' | 'created_at' | 'updated_at' | 'spots_taken' | 'registrations'>;
+type GameFormData = Omit<Game, 'id' | 'created_at' | 'updated_at' | 'spots_taken' | 'registrations' | 'created_by' | 'creator'>;
 
 interface GameFormProps {
   initialValues?: Partial<GameFormData>;

@@ -8,8 +8,8 @@ export function CreateGamePage() {
   const { user } = useAuth();
   const { createGame, loading, error } = useCreateGame();
 
-  const handleSubmit = async (data: Parameters<typeof createGame>[0]) => {
-    const game = await createGame({ ...data, created_by: user!.id });
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const game = await createGame({ ...data, created_by: user!.id } as Parameters<typeof createGame>[0]);
     if (game) {
       navigate('/my-games');
     }

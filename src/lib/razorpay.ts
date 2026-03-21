@@ -29,8 +29,9 @@ export interface CheckoutOptions {
   onFailure: (error: unknown) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function openRazorpayCheckout(options: CheckoutOptions) {
-  const rzp = new (window as Record<string, unknown> & { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay({
+  const rzp = new (window as any).Razorpay({
     key: import.meta.env.VITE_RAZORPAY_KEY_ID,
     amount: options.amount,
     currency: options.currency,
