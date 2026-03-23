@@ -6,6 +6,7 @@ export function useWhatsAppPayment() {
   const [polling, setPolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const inFlightRef = useRef(false);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -13,6 +14,7 @@ export function useWhatsAppPayment() {
       pollRef.current = null;
     }
     setPolling(false);
+    inFlightRef.current = false;
   }, []);
 
   const createLinkAndSendWhatsApp = async (params: {
@@ -26,6 +28,8 @@ export function useWhatsAppPayment() {
     playerPhone: string;
     callbackUrl: string;
   }): Promise<boolean> => {
+    if (inFlightRef.current) return false;
+    inFlightRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -101,6 +105,7 @@ export function useWhatsAppPayment() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create payment link');
       setLoading(false);
+      inFlightRef.current = false;
       return false;
     }
   };
