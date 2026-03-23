@@ -172,6 +172,23 @@ export function GameDetailPage() {
             </div>
           </div>
 
+          {/* Status banners */}
+          {game.status === 'cancelled' && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm font-medium">
+              This game has been cancelled.
+            </div>
+          )}
+          {game.status === 'completed' && (
+            <div className="bg-gray-100 text-gray-600 p-4 rounded-lg text-sm font-medium">
+              This game has ended.
+            </div>
+          )}
+          {game.status === 'in_progress' && (
+            <div className="bg-blue-50 text-blue-700 p-4 rounded-lg text-sm font-medium">
+              This game is currently in progress.
+            </div>
+          )}
+
           {/* Success message */}
           {successMsg && (
             <div className="bg-emerald-50 text-emerald-700 p-4 rounded-lg text-sm font-medium">
@@ -179,8 +196,8 @@ export function GameDetailPage() {
             </div>
           )}
 
-          {/* Join button — requires login */}
-          {!showForm && !successMsg && !isFull && (
+          {/* Join button — requires login, only for upcoming games */}
+          {game.status === 'upcoming' && !showForm && !successMsg && !isFull && (
             session ? (
               <button
                 onClick={() => {
@@ -205,7 +222,7 @@ export function GameDetailPage() {
             )
           )}
 
-          {isFull && !successMsg && (
+          {game.status === 'upcoming' && isFull && !successMsg && (
             <div className="text-center py-3 bg-gray-100 rounded-xl text-gray-500 font-medium">
               This game is full
             </div>

@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Spinner } from '../components/ui/Spinner';
 
@@ -35,6 +35,12 @@ export function LoginPage() {
             Sign in to join games and host your own
           </p>
         </div>
+
+        <p className="text-xs text-gray-400 text-center mt-6">
+          <Link to="/policies" className="hover:text-emerald-600 transition-colors underline">
+            Privacy Policy · Refund Policy · Terms
+          </Link>
+        </p>
       </div>
     </div>
   );

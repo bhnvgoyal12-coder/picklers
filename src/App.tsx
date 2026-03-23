@@ -9,6 +9,7 @@ import { MyGamesPage } from './pages/MyGamesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { CreateGamePage } from './pages/admin/CreateGamePage';
 import { AdminGameDetailPage } from './pages/admin/AdminGameDetailPage';
+import { PoliciesPage } from './pages/PoliciesPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/games/:id" element={<GameDetailPage />} />
+            <Route path="/policies" element={<PoliciesPage />} />
 
             {/* Protected routes — require login */}
             <Route element={<ProtectedRoute />}>

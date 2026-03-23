@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGame, useDeleteGame } from '../../hooks/useGames';
+import { useGame, useDeleteGame, useUpdateGame } from '../../hooks/useGames';
 import { useGameRegistrations } from '../../hooks/useRegistrations';
 import { useAuth } from '../../hooks/useAuth';
 import { PlayerList } from '../../components/game/PlayerList';
@@ -16,6 +16,7 @@ export function AdminGameDetailPage() {
   const { game, loading } = useGame(id!);
   const { registrations, loading: regsLoading } = useGameRegistrations(id!);
   const { deleteGame, loading: deleting } = useDeleteGame();
+  const { updateGame, loading: updating } = useUpdateGame();
   const [copied, setCopied] = useState(false);
 
   if (loading) return <Spinner className="py-20" />;
@@ -42,6 +43,12 @@ export function AdminGameDetailPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleCancel = async () => {
+    if (!confirm('Are you sure you want to cancel this game? All registered players will see it as cancelled.')) return;
+    const ok = await updateGame(game.id, { status: 'cancelled' });
+    if (ok) window.location.reload();
   };
 
   const handleDelete = async () => {
@@ -110,6 +117,15 @@ export function AdminGameDetailPage() {
           >
             {copied ? '✓ Link Copied!' : '📤 Share Game Link'}
           </button>
+          {game.status === 'upcoming' && (
+            <button
+              onClick={handleCancel}
+              disabled={updating}
+              className="w-full py-3 border border-orange-200 text-orange-600 rounded-xl text-sm font-medium hover:bg-orange-50 disabled:opacity-50"
+            >
+              {updating ? 'Cancelling...' : 'Cancel Game'}
+            </button>
+          )}
           <button
             onClick={handleDelete}
             disabled={deleting}
