@@ -3,7 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useGame } from '../hooks/useGames';
 import { useRegisterForGame } from '../hooks/useRegistrations';
 import { usePayment } from '../hooks/usePayment';
+import { useWhatsAppPayment } from '../hooks/useWhatsAppPayment';
 import { useAuth } from '../hooks/useAuth';
+
+const PAYMENT_MODE = import.meta.env.VITE_PAYMENT_MODE || 'direct';
 import { SpotsBadge } from '../components/game/SpotsBadge';
 import { PlayerList } from '../components/game/PlayerList';
 import { Spinner } from '../components/ui/Spinner';
@@ -17,6 +20,7 @@ export function GameDetailPage() {
   const { game, loading, error, refetch } = useGame(id!);
   const { register, loading: registering, error: regError } = useRegisterForGame();
   const { createOrderAndPay, loading: paying, error: payError } = usePayment();
+  const { createLinkAndSendWhatsApp, loading: creatingLink, polling, error: waError, stopPolling } = useWhatsAppPayment();
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
@@ -66,16 +70,32 @@ export function GameDetailPage() {
     if (!registration) return;
 
     if (game.price_per_player > 0) {
-      const paid = await createOrderAndPay({
-        registrationId: registration.id,
-        gameId: game.id,
-        gameName: game.title,
-        amount: game.price_per_player,
-        currency: game.currency,
-        playerName: name.trim(),
-        playerEmail: email.trim(),
-        playerPhone: phone.trim(),
-      });
+      let paid = false;
+
+      if (PAYMENT_MODE === 'whatsapp') {
+        paid = await createLinkAndSendWhatsApp({
+          registrationId: registration.id,
+          gameId: game.id,
+          gameName: game.title,
+          amount: game.price_per_player,
+          currency: game.currency,
+          playerName: name.trim(),
+          playerEmail: email.trim(),
+          playerPhone: phone.trim(),
+          callbackUrl: window.location.href,
+        });
+      } else {
+        paid = await createOrderAndPay({
+          registrationId: registration.id,
+          gameId: game.id,
+          gameName: game.title,
+          amount: game.price_per_player,
+          currency: game.currency,
+          playerName: name.trim(),
+          playerEmail: email.trim(),
+          playerPhone: phone.trim(),
+        });
+      }
 
       if (paid) {
         setSuccessMsg('Payment successful! You are registered.');
@@ -257,26 +277,52 @@ export function GameDetailPage() {
                 readOnly
               />
 
-              {(regError || payError) && (
-                <p className="text-sm text-red-600">{regError || payError}</p>
+              {(regError || payError || waError) && (
+                <p className="text-sm text-red-600">{regError || payError || waError}</p>
               )}
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-700 font-medium text-sm hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={registering || paying}
-                  className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {registering || paying ? 'Processing...' : game.price_per_player > 0 ? `Pay ${formatPrice(game.price_per_player)}` : 'Confirm'}
-                </button>
-              </div>
+              {polling ? (
+                <div className="text-center space-y-3 py-2">
+                  <div className="flex items-center justify-center gap-2 text-emerald-700">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-sm font-medium">Waiting for payment...</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Complete the payment via WhatsApp. This page will update automatically.</p>
+                  <button
+                    type="button"
+                    onClick={() => { stopPolling(); setShowForm(false); }}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="flex-1 py-3 border border-gray-200 rounded-xl text-gray-700 font-medium text-sm hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={registering || paying || creatingLink}
+                    className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    {registering || paying || creatingLink
+                      ? 'Processing...'
+                      : game.price_per_player > 0
+                        ? PAYMENT_MODE === 'whatsapp'
+                          ? `Pay via WhatsApp · ${formatPrice(game.price_per_player)}`
+                          : `Pay ${formatPrice(game.price_per_player)}`
+                        : 'Confirm'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
         </div>
