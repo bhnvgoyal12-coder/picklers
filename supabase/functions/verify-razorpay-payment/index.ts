@@ -39,7 +39,10 @@ Deno.serve(async (req: Request) => {
     const { registration_id, razorpay_payment_id, razorpay_order_id, razorpay_signature } =
       await req.json();
 
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')!;
+    const mode = Deno.env.get('RAZORPAY_MODE') || 'test';
+    const keySecret = mode === 'live'
+      ? Deno.env.get('RAZORPAY_LIVE_KEY_SECRET')!
+      : Deno.env.get('RAZORPAY_TEST_KEY_SECRET')!;
 
     const isValid = await verifySignature(
       razorpay_order_id,

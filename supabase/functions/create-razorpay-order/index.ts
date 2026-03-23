@@ -17,8 +17,13 @@ Deno.serve(async (req: Request) => {
   try {
     const { registration_id, game_id, amount, currency } = await req.json();
 
-    const keyId = Deno.env.get('RAZORPAY_KEY_ID')!;
-    const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')!;
+    const mode = Deno.env.get('RAZORPAY_MODE') || 'test';
+    const keyId = mode === 'live'
+      ? Deno.env.get('RAZORPAY_LIVE_KEY_ID')!
+      : Deno.env.get('RAZORPAY_TEST_KEY_ID')!;
+    const keySecret = mode === 'live'
+      ? Deno.env.get('RAZORPAY_LIVE_KEY_SECRET')!
+      : Deno.env.get('RAZORPAY_TEST_KEY_SECRET')!;
 
     // Create Razorpay order
     const orderRes = await fetch('https://api.razorpay.com/v1/orders', {

@@ -32,7 +32,9 @@ export interface CheckoutOptions {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function openRazorpayCheckout(options: CheckoutOptions) {
   const rzp = new (window as any).Razorpay({
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    key: (import.meta.env.VITE_RAZORPAY_MODE || 'test') === 'live'
+      ? import.meta.env.VITE_RAZORPAY_LIVE_KEY_ID
+      : import.meta.env.VITE_RAZORPAY_TEST_KEY_ID,
     amount: options.amount,
     currency: options.currency,
     name: 'Picklers',
