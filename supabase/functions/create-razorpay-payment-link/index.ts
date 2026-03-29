@@ -61,6 +61,10 @@ Deno.serve(async (req: Request) => {
         notes: {
           game_id,
           registration_id,
+          game_name,
+          player_name,
+          player_email,
+          player_phone,
         },
         expire_by: Math.floor(Date.now() / 1000) + 86400, // 24 hour expiry
       }),
