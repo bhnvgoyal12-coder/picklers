@@ -290,7 +290,7 @@ export function GameDetailPage() {
                     </svg>
                     <span className="text-sm font-medium">Waiting for payment...</span>
                   </div>
-                  <p className="text-xs text-gray-500">Complete the payment via WhatsApp. This page will update automatically.</p>
+                  <p className="text-xs text-gray-500">Complete the payment in the new tab. This page will update automatically.</p>
                   <button
                     type="button"
                     onClick={() => { stopPolling(); setShowForm(false); }}
@@ -316,9 +316,7 @@ export function GameDetailPage() {
                     {registering || paying || creatingLink
                       ? 'Processing...'
                       : game.price_per_player > 0
-                        ? PAYMENT_MODE === 'whatsapp'
-                          ? `Pay via WhatsApp · ${formatPrice(game.price_per_player)}`
-                          : `Pay ${formatPrice(game.price_per_player)}`
+                        ? `Pay ${formatPrice(game.price_per_player)}`
                         : 'Confirm'}
                   </button>
                 </div>

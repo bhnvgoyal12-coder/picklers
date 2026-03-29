@@ -55,12 +55,8 @@ export function useWhatsAppPayment() {
       if (fnError) throw new Error(fnError.message);
       if (!data?.short_url) throw new Error('Failed to create payment link');
 
-      // Step 2: Open WhatsApp with payment link
-      const phone = params.playerPhone.replace(/\D/g, '');
-      const message = encodeURIComponent(
-        `Hi! Please complete your payment for ${params.gameName}:\n${data.short_url}`
-      );
-      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+      // Step 2: Open payment link in new tab
+      window.open(data.short_url, '_blank');
 
       setLoading(false);
 
