@@ -41,6 +41,7 @@ export interface Registration {
   razorpay_payment_id: string | null;
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   payment_amount: number;
+  game_title: string | null;
   registered_at: string;
   game?: Game;
   profile?: Profile;

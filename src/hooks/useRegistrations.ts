@@ -81,6 +81,7 @@ export function useRegisterForGame() {
     player_phone: string;
     player_email: string;
     payment_amount: number;
+    game_title: string;
   }) => {
     setLoading(true);
     setError(null);

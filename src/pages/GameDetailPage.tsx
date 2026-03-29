@@ -73,6 +73,7 @@ export function GameDetailPage() {
       player_phone: phone.trim(),
       player_email: email.trim(),
       payment_amount: game.price_per_player,
+      game_title: game.title,
     });
 
     if (!registration) return;
