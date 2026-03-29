@@ -20,6 +20,7 @@ export function useMyHostedGames() {
       const { data } = await supabase
         .from('games')
         .select('*, registrations(count)')
+        .eq('registrations.payment_status', 'paid')
         .eq('created_by', user.id)
         .order('date', { ascending: false });
 

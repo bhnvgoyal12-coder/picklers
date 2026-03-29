@@ -15,6 +15,7 @@ export function useGames() {
       const { data, error: err } = await supabase
         .from('games')
         .select('*, registrations(count)')
+        .eq('registrations.payment_status', 'paid')
         .gte('date', today)
         .eq('status', 'upcoming')
         .order('date', { ascending: true })
@@ -62,7 +63,7 @@ export function useGame(id: string) {
       const spotsCount = (data.registrations as unknown[])?.filter(
         (r: unknown) => {
           const reg = r as { payment_status: string };
-          return reg.payment_status === 'pending' || reg.payment_status === 'paid';
+          return reg.payment_status === 'paid';
         }
       ).length ?? 0;
 
