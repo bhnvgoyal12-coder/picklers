@@ -7,6 +7,8 @@ export function useWhatsAppPayment() {
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inFlightRef = useRef(false);
+  const paymentLinkIdRef = useRef<string | null>(null);
+  const registrationIdRef = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -17,7 +19,27 @@ export function useWhatsAppPayment() {
     inFlightRef.current = false;
   }, []);
 
-  const createLinkAndSendWhatsApp = async (params: {
+  const cancelPayment = useCallback(async () => {
+    stopPolling();
+
+    // Cancel the Razorpay payment link if we have one
+    if (paymentLinkIdRef.current && registrationIdRef.current) {
+      try {
+        await supabase.functions.invoke('cancel-razorpay-payment-link', {
+          body: {
+            payment_link_id: paymentLinkIdRef.current,
+            registration_id: registrationIdRef.current,
+          },
+        });
+      } catch {
+        // Best effort — don't block the UI
+      }
+      paymentLinkIdRef.current = null;
+      registrationIdRef.current = null;
+    }
+  }, [stopPolling]);
+
+  const createLinkAndPay = async (params: {
     registrationId: string;
     gameId: string;
     gameName: string;
@@ -55,6 +77,10 @@ export function useWhatsAppPayment() {
       if (fnError) throw new Error(fnError.message);
       if (!data?.short_url) throw new Error('Failed to create payment link');
 
+      // Store refs for cancellation
+      paymentLinkIdRef.current = data.payment_link_id;
+      registrationIdRef.current = params.registrationId;
+
       // Step 2: Open payment link in new tab
       window.open(data.short_url, '_blank');
 
@@ -77,6 +103,8 @@ export function useWhatsAppPayment() {
 
             if (statusData?.status === 'paid') {
               stopPolling();
+              paymentLinkIdRef.current = null;
+              registrationIdRef.current = null;
               resolve(true);
               return;
             }
@@ -106,5 +134,5 @@ export function useWhatsAppPayment() {
     }
   };
 
-  return { createLinkAndSendWhatsApp, loading, polling, error, stopPolling };
+  return { createLinkAndPay, loading, polling, error, stopPolling, cancelPayment };
 }

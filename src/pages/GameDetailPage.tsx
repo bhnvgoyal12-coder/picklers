@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useGame } from '../hooks/useGames';
 import { useRegisterForGame } from '../hooks/useRegistrations';
 import { usePayment } from '../hooks/usePayment';
 import { useWhatsAppPayment } from '../hooks/useWhatsAppPayment';
 import { useAuth } from '../hooks/useAuth';
+import { useCheckPendingPayment } from '../hooks/useCheckPendingPayment';
 
 const PAYMENT_MODE = import.meta.env.VITE_PAYMENT_MODE || 'direct';
 import { SpotsBadge } from '../components/game/SpotsBadge';
@@ -20,7 +21,7 @@ export function GameDetailPage() {
   const { game, loading, error, refetch } = useGame(id!);
   const { register, loading: registering, error: regError } = useRegisterForGame();
   const { createOrderAndPay, loading: paying, error: payError } = usePayment();
-  const { createLinkAndSendWhatsApp, loading: creatingLink, polling, error: waError, stopPolling } = useWhatsAppPayment();
+  const { createLinkAndPay, loading: creatingLink, polling, error: waError, cancelPayment } = useWhatsAppPayment();
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState(profile?.full_name ?? '');
@@ -28,6 +29,13 @@ export function GameDetailPage() {
   const [email, setEmail] = useState(user?.email ?? '');
   const [successMsg, setSuccessMsg] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Check for pending payments on page load
+  const handlePendingPaid = useCallback(() => {
+    setSuccessMsg('Payment confirmed! You\'re registered.');
+    refetch();
+  }, [refetch]);
+  useCheckPendingPayment(id, phone || profile?.phone, handlePendingPaid);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -73,7 +81,7 @@ export function GameDetailPage() {
       let paid = false;
 
       if (PAYMENT_MODE === 'whatsapp') {
-        paid = await createLinkAndSendWhatsApp({
+        paid = await createLinkAndPay({
           registrationId: registration.id,
           gameId: game.id,
           gameName: game.title,
@@ -293,7 +301,7 @@ export function GameDetailPage() {
                   <p className="text-xs text-gray-500">Complete the payment in the new tab. This page will update automatically.</p>
                   <button
                     type="button"
-                    onClick={() => { stopPolling(); setShowForm(false); }}
+                    onClick={() => { cancelPayment(); setShowForm(false); }}
                     className="text-xs text-gray-400 hover:text-gray-600 underline"
                   >
                     Cancel
